@@ -1,0 +1,8 @@
+{ "name" : "chat-server-demo",
+	"version" : "1.0.0",
+	"description" : "a demo chat server.",
+	"dependencies" : {"socket.io" : ">=0.5.0",
+										"connect" : ">=0.5.0",
+										}
+	"scripts" : {"start" : " node server.js"}
+} 
