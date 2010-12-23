@@ -1,0 +1,106 @@
+/* some basics */
+div.clear {
+  clear: both;
+}
+div.scripts {
+  display:none;
+}
+
+/* hide this input field */
+input.xss {
+  display:none;
+}
+
+/* left and right flow */
+.leftBlock {
+  width: 300px; float: left
+}
+.rightBlock {
+  width: 300px; float: right
+}
+.center {
+  width: 300px ;
+  margin-left: auto ;
+  margin-right: auto ;
+}
+.centerText {
+  text-align: center ;
+}
+
+/*game type stuff*/
+div#gameContainer {
+  visibility:hidden;
+  margin-top:50px;
+}
+canvas#gameBoard {
+  margin-top: 20px;
+}
+textarea#dropArea {
+  width:995px;
+  height:995px;
+  resize: none;
+  background-color:transparent;
+  top:20px;
+}
+
+div#board {
+  position:relative;
+}
+canvas, textarea {
+  position: absolute;
+  left: -345px;
+}
+
+/* reset css */
+/* http://meyerweb.com/eric/tools/css/reset/ */
+/* v1.0 | 20080212 */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-size: 100%;
+	vertical-align: baseline;
+	background: transparent;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+
+/* remember to define focus styles! */
+:focus {
+	outline: 0;
+}
+
+/* remember to highlight inserts somehow! */
+ins {
+	text-decoration: none;
+}
+del {
+	text-decoration: line-through;
+}
+
+/* tables still need 'cellspacing="0"' in the markup */
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
