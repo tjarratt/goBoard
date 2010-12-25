@@ -1,4 +1,5 @@
 var expressApp = _app,
+    express = require("express"),
     sys = require("sys"),
     redisClient = require(_appRoot + "/lib/redis-client").createClient();
     
@@ -9,12 +10,15 @@ var cookie = require("cookie");
 //cookie secret should be set by server.js
 
 exports.renderJSON = function(message, response) {
-  message = message? JSON.stringify(message) : "";
+  /*message = message? JSON.stringify(message) : "";
   response.writeHead(200, {
     'Content-Length': message.length,
     'Content-Type': "application/json"
-  });
-  response.write(message);
+  });*/
+  sys.puts("going to render message " + message);
+  sys.puts(sys.inspect(message));
+  expressApp.use(express.bodyDecoder());
+  response.send(message);
   response.end();
 }
 
@@ -82,7 +86,10 @@ expressApp.post("/board/new", function(req, res) {
         
         sys.puts("writing cookie and rendering JSON");
         res.setCookie("room", thisRoomId);
-        exports.renderJSON("{roomId: " + thisRoomId + "}", res);
+        var jsonResponse = {"roomId": thisRoomId};
+        sys.puts("this roomId: " + thisRoomId);
+        thisRoomId = parseInt(thisRoomId);
+        exports.renderJSON(jsonResponse, res);
         
         redisClient.hmset("cookie:" + cookie, "name", userName, "room", thisRoomId, function(e, result) {
           if (e || !result) {

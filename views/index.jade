@@ -11,6 +11,7 @@
 			input(type="text", id="nameInput")
 	.clear
 	#gameContainer(class="center")
+		#joinLink
 		#scoreContainer
 			#scoreContainer(class="leftBlock")
 			#joinLink(class="rightBlock")
@@ -25,9 +26,9 @@
 	:javascript
 		| head.js("/public/js/jquery.js", 
 		|					"public/js/socket.io.js", 
-		|					"public/js/board.js?v=10", 
-		|					"public/js/socket.js?v=10", 
-		|					"/public/js/index.js?v=10", 
+		|					"public/js/board.js?v=11", 
+		|					"public/js/socket.js?v=11", 
+		|					"/public/js/index.js?v=11", 
 		|					"/public/js/jquery.cookie.js", 
 		| function() {
 		| 	initIndex();

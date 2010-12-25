@@ -2,10 +2,10 @@ function createNewImage(imgSrc, x, y) {
   console.log("creating a new image from src: " + imgSrc);
   console.log("at x: " + x + " y: " + y);
   
-  if (x 25 0) {
+  if (x > 25) {
     x = 25;
   }
-  if (y 25 0) {
+  if (y > 25) {
     y = 25;
   }
   if (x > 1000) { x = 975;}

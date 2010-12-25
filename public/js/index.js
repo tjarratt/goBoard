@@ -11,6 +11,7 @@ function initIndex() {
   //setup socket.io
   io.setPath("/");
   _url = "butter3.local";//TODO: get this from hostname()
+  //should probably be http://www.table.no.de at some point
   
   _socket = new io.Socket(_url, {port: 8080});
   initSocket(_socket);
@@ -32,8 +33,14 @@ function initIndex() {
       $("div#joinLink").html("<p>Send this link to a friend <a href='http://www." + _url + "/board/" + _roomId + "'>Play Go!</a>")
       
       //and score board too
-      $("div#scoreContainer").html("<p id='blackScore'>Black: 0</p>");
-      $("div#scoreContainer").append("<p id='whiteScore'>White: 0</p>");
+      //$("div#scoreContainer").html("<p id='blackScore'>Black: 0</p>");
+      //$("div#scoreContainer").append("<p id='whiteScore'>White: 0</p>");
+      //TODO: re-enable this if I ever put scoring into place
+      
+      //let's put a link for other people to join on the page though.
+      var $join = $("div#joinLink");
+      $join.html("<p>Send a link to this game to a friend (or book mark it for yourself)</p>"); 
+      $join.append("<a href='join/" + _roomId + "'>" + _url + "</a>");
       
       //set up some event handlers on the board
       initDragDrop();
