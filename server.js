@@ -44,7 +44,7 @@ console.log("express server started on port 8080");
 
 app.get("/", function(req, res) {
   var renderCallback = function(localVars) {
-    res.render("index.jade", {locals: localVars });
+    res.render("index.jade", {locals: localVars});
   }
   
   //look for cookied user
@@ -53,15 +53,22 @@ app.get("/", function(req, res) {
     sys.puts("got uncookied user");
     var tempId = Math.uuid();
     res.setCookie("uuid", tempId);
-    redisClient.hset("cookie" + tempId, "name", "unknown", function(e, result) {
-      renderCallback({xid: tempId});
+    redisClient.hset("cookie:" + tempId, "name", "unknown", function(e, result) {
+      renderCallback({xid: tempId, name: "new user"});
     });
   }
   else {
     sys.puts("got cookied user");
-    redisClient.hget("cookie:" + cookieValue, "name", function(e, result) {
-      //TODO: check to see if this user has an existing game
-      renderCallback({xid: cookieValue});
+    redisClient.hget("cookie:" + cookieValue, "name", function(e, possibleName) {
+      //TODO: check to see if this user has an existing game, in which case we should redirect them to /board/#
+      
+      possibleName = possibleName ? possibleName : "unknown user";
+      renderCallback({xid: cookieValue, name: possibleName});
     });
   }
+});
+
+app.get("/logout", function(req, res) {
+  res.clearCookie("uuid");
+  res.redirect("/");
 });

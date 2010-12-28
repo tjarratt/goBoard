@@ -7,7 +7,7 @@ div.scripts {
 }
 
 /* hide this input field */
-input.xss {
+input.hidden {
   display:none;
 }
 
@@ -32,7 +32,7 @@ div#gameContainer {
   visibility:hidden;
   margin-top:50px;
 }
-canvas#gameBoard {
+canvas#gameBoard, canvas#background {
   margin-top: 20px;
 }
 textarea#dropArea {
@@ -49,6 +49,11 @@ div#board {
 canvas, textarea {
   position: absolute;
   left: -345px;
+}
+
+#joinLink {
+  width: 350px;
+  text-align: center;
 }
 
 /* reset css */

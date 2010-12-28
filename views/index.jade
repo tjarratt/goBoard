@@ -1,10 +1,4 @@
 #container
-	.leftBlock
-		h1 GO Board v0.0.1
-	.rightBlock(id="trHeader")
-		span designed by 
-		a(href="http://www.illegaltoaster.com") Tim Jarratt
-	.clear
 	.center(id="nameForm")
 		.centerText
 			p What should we call you?
@@ -12,24 +6,23 @@
 	.clear
 	#gameContainer(class="center")
 		#joinLink
-		#scoreContainer
-			#scoreContainer(class="leftBlock")
-			#joinLink(class="rightBlock")
+		#scoreContainer(class="leftBlock")
 		.clear
 		#gamePieces(class="centerText")
 			p You must select a color first
 		.clear
 		#board
-			canvas(id="gameBoard", width="1000", height="1000")
-			textarea(id="dropArea", rows="19", cols="19")
 .scripts
 	:javascript
+		|	var currentTime = new Date(),
+		|			secs = currentTime.getTime();	
 		| head.js("/public/js/jquery.js", 
-		|					"public/js/socket.io.js", 
-		|					"public/js/board.js?v=11", 
-		|					"public/js/socket.js?v=11", 
-		|					"/public/js/index.js?v=11", 
+		|					"/public/js/socket.io.js", 
+		|					"/public/js/board.js?v=" + secs, 
+		|					"/public/js/socket.js?v=" + secs, 
+		|					"/public/js/index.js?v=" + secs, 
 		|					"/public/js/jquery.cookie.js", 
+		|					"/lib/uuid.js",
 		| function() {
 		| 	initIndex();
 		| });

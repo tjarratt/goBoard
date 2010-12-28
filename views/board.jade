@@ -1,4 +1,29 @@
 #container
-	h1 Hey Listen!
-	#messages
-		p!= message
+	.center
+		h1 Hey Listen!
+		#messages
+			p!= message
+	#temp
+	#gameContainer(class="center")
+		#scoreContainer(class="leftBlock")
+		.clear
+		#gamePieces(class="centerText")
+		#board
+.scripts
+	input(id="gameId", class="hidden", value=room)
+	input(id="forcedColor", class="hidden", value=color)
+	input(id="known", class="hidden", value=known)
+	:javascript
+		| _init = {}; 
+		|	var currentTime = new Date(),
+		|			secs = currentTime.getTime();
+		| head.js("/public/js/jquery.js", 
+		|					"/public/js/socket.io.js", 
+		|					"/public/js/board.js?v=" + secs, 
+		|					"/public/js/socket.js?v=" + secs, 
+		|					"/public/js/game.js?v=" + secs, 
+		|					"/public/js/jquery.cookie.js",
+		|					"/lib/uuid.js",
+		| function() {
+		| 	initGame($("input#gameId").val(), $("input#forcedColor").val(), $("input#known").val());
+		| });

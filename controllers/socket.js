@@ -4,6 +4,19 @@ var sys = require("sys"),
     
 require(_appRoot + "/lib/underscore-min");
 
+//need a controller prototype obj that handles this natively
+function hashResultMaybe(hash, key) {
+  //short circuit, but be becareful if value is a bool false value like zero
+  if (!hash || (!key && typeof key != "number")) {return false;}
+  
+  var maybeValue = hash[key];
+  maybeValue = maybeValue? maybeValue.toString('utf8') : false;
+  return maybeValue;
+}
+function isValidReturn(e, result) {
+  return (e || (!result && typeof result != "number") ) ? false : true;
+}
+
 //message protocol handler obj
 var handler = {}; 
 //{type:"add", data: {room: %integer%, id: %int%, x: %int%, y: %int%}} 
@@ -23,6 +36,7 @@ handler.move = function(client, json) { //should we use an ID per piece? seems r
     usersList = _.without(usersList, client.sessionId);
     
     client.broadcastOnly(jStringify({type: "move", who: whichUser, x: moveX, y: moveY}), usersList);
+    client.send(jStringify({id: json.id, result: true})); //TODO: make sure this only targets one client
   });
 }
 //{type:"add", data: {room: %integer%, x: %int%, y: %int%}}
@@ -33,14 +47,16 @@ handler.add = function(client, json) {
       roomId = moveInfo.room,
       atX = moveInfo.x,
       atY = moveInfo.y,
-      whichUser = moveInfo.who;
+      whichUser = moveInfo.who,
+      src = moveInfo.src;
   
   redisClient.hget("room:" + roomId, "sockets", function(e, result) {
     var usersList = jParse(result);
     usersList = usersList instanceof Array ? usersList : [];
     usersList = _.without(usersList, client.sessionId);
     
-    client.broadcastOnly(jStringify({type: "add", who: whichUser, x: atX, y: atY}), usersList);
+    client.broadcastOnly(jStringify({type: "add", who: whichUser, x: atX, y: atY, image: src}), usersList);
+    client.send(jStringify({id: json.id, result: true})); //TODO: make sure this only targets one client
   });
   
 }
@@ -64,22 +80,45 @@ handler.join = function(client, json) { //that no one will play more than one ga
   var socketId = client.sessionId,
       joinInfo = json.data,
       roomId = joinInfo.room,
-      username = joinInfo.name;
+      username = joinInfo.name, 
+      joinAsColor = joinInfo.color;
   
+  sys.puts("in handler.join");
   redisClient.hset("socket", socketId, username, function(e, result) {
     if (e || !result) {
       sys.puts("error when writing to socket hash for user: " + username);
       return client.broadcastOnly("err", [client.sessionId]);
     }
     
-    redisClient.hget("room:" + roomId, "sockets", function(e, sockets) {
-      var otherUsers = otherUsers instanceof Array? otherUsers : [];
-      var joinMessage = {type: "join", "who": username};
-      client.broadcastOnly(jStringify(joinMessage), otherUsers);
+    redisClient.hmget("room:" + roomId, "sockets", "users", function(e, roomInfo) {
+      sys.puts("info for room:" + roomId, "     " + roomInfo);
       
-      otherUsers.push(socketId);
-      redisClient.hset("room:" + roomId, "sockets", otherUsers, function(e, result) {
-        if (e || !result) { sys.puts("error when updating web sockets for room:" + roomId); }
+      var sockets = hashResultMaybe(roomInfo, 0),
+          users = hashResultMaybe(roomInfo, 1);
+          
+      sys.puts("got users for room:" + roomId, users);
+
+      users = jParse(users)
+      sockets = jParse(sockets);
+      var otherUsers = users? users: {},
+          allSockets = sockets && sockets instanceof Array ? sockets : [];
+      
+      var joinMessage = {type: "join", "who": username};
+      sys.puts("sending join message: " + jStringify(joinMessage) + " to users : " + jStringify(allSockets));
+      client.broadcastOnly(jStringify(joinMessage), allSockets);
+      
+      otherUsers[username] = {color: joinAsColor};
+      sys.puts(otherUsers[username].toString());
+      
+      allSockets.push(socketId);
+      sys.puts("updating users to : " + jStringify(otherUsers));
+      sys.puts("updating sockets to : " + jStringify(allSockets));
+      
+      redisClient.hmset("room:" + roomId, "sockets", jStringify(allSockets), "users", jStringify(otherUsers), function(e, result) {
+        if (! isValidReturn(e, result)) {
+         sys.puts("error when updating web sockets for room:" + roomId);
+        }
+        client.send(jStringify({id: json.id, result: true}));
       });
     });
   });
@@ -116,15 +155,18 @@ var startSocket = function() {
       try 
       {
         msg = jParse(messageData); //parse, look for invalid message type
-        if (!msg || !msg.type || !msg.data || handler[msg.type]) {
+        if (!msg || !msg.type || !msg.data || !handler[msg.type]) {
+          sys.puts("parsed a message with no type, no data, or no handler for this type");
           return this.send(jStringify(errorJSON));
         }
         else {
+          sys.puts("handling a " + msg.type + " websocket message");
           return handler[msg.type](this, msg);
         }
         
       }
       catch (exception) {
+        sys.puts("caught an error when parsing a message: " + messageData);
         return this.send(jStringify(error));
       } //if this doesn't work try client.broadcastOnly(jStringify(error), [client.sessionId]);
     });

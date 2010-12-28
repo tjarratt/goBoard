@@ -1,17 +1,19 @@
-function createNewImage(imgSrc, x, y) {
+function createNewImage(imgSrc, x, y, isLocal) {
+  isLocal = isLocal && isLocal === true? true : false;
   console.log("creating a new image from src: " + imgSrc);
   console.log("at x: " + x + " y: " + y);
-  
-  if (x > 25) {
+   
+  //send off a message as soon as possible
+  if (isLocal) { sendMessage("add", {x: x, y: y, room: _roomId, who: _username, src: imgSrc}, false); }
+    
+  if (x < 25) {
     x = 25;
   }
-  if (y > 25) {
+  if (y < 25) {
     y = 25;
   }
   if (x > 1000) { x = 975;}
   if (y > 1000) { y = 975;}
-  
-  sendMessage("move", "x:" + x + ",y:" + y, false);
       
   var canvas = $("canvas#gameBoard")[0];
   var ctx = canvas.getContext("2d");
@@ -34,6 +36,17 @@ function createNewImage(imgSrc, x, y) {
   //and store it for quick access in _positions
   var key = x + "_" + y;
   _gameBoard[key] = newImage;
+}
+
+function moveObjectOnBoard(mapKey, byUser, destination) {
+  var mapObj = _gameBoard[mapKey],
+      newKey = destination = destination.x + "_" + destination.y;
+      
+  delete _gameBoard[mapKey];
+  if (mapObj && mapObj.user == byUser) {
+    _gameBoard[newKey] = {source: mapObj.source, coords: destination, user: byUser};
+    sendMessage("move", {x: destination.x, y: destination.y, room: _roomId, who: byUser}, false); //should actually check that this worked
+  }
 }
 
 function findMousePosition(e) {
@@ -77,14 +90,14 @@ function onDragMove(position) {
 
 function renderAll(wipeTop) {
   if (wipeTop === true) {
-    var topContext = $("textarea")[0].getContext("2d");
-    topContext.clearRect(0, 0, 700, 700);
+    var topContext = $("canvas#gameBoard")[0].getContext("2d");
+    topContext.clearRect(0, 0, 1000, 1000);
   }
-  var $context = $("canvas#gameBoard");
+  var $topLayer = $("canvas#top");
   
   //get the context of the canvas where we are drawing the players, wipe it clean
-  var mapContext = $canvas[0].getContext("2d");
-  mapContext.clearRect(0, 0, 700, 700);
+  var mapContext = $topLayer[0].getContext("2d");
+  mapContext.clearRect(0, 0, 1000, 1000);
   
   //render all _gameBoard on middle canvas
   $.each(_gameBoard, function(index, imageObj) {
@@ -97,11 +110,44 @@ function renderAll(wipeTop) {
     img.src = imageObj.source;
     
     img.onload = function() {
-      mapContext.drawImage(img, imageObj.coords.x, imageObj.coords.y); //probably need to update this
+      mapContext.drawImage(img, imageObj.coords.x, imageObj.coords.y + 25); //TODO: figure out why only one offset is correct here
     }
   });
   
   return false;
+}
+
+function createGameBoard(type, rows, columns) {
+  //just assuming we're making a square grid here
+  var backgroundCanvas = document.createElement("canvas");
+  backgroundCanvas.id = "background";
+  
+  var topCanvas = document.createElement("canvas");
+  topCanvas.id = "top";
+  
+  var gameCanvas = document.createElement("canvas");
+  gameCanvas.id = "gameBoard";
+  
+  var textarea = document.createElement("textarea");
+  textarea.id = "dropArea";
+  textarea.rows = rows;
+  textarea.cols = columns;
+  
+  var gameContainer = $("div#board");
+  gameContainer.append(backgroundCanvas);
+  gameContainer.append(gameCanvas);
+  gameContainer.append(topCanvas);
+  gameContainer.append(textarea);
+  
+  gameContainer.children("canvas").each(function(index, canvasElement) {
+    $canvas = $(canvasElement);
+    $canvas.attr("width", 1000);
+    $canvas.attr("height", 1000);
+    $canvas.css("visibilility", "visible");
+    $canvas.show();
+  });
+  
+  return $("canvas#background");
 }
 
 function initGameBoard(gridType, rows, columns) {
@@ -113,7 +159,11 @@ function initGameBoard(gridType, rows, columns) {
   _images = [];
   _draggingImage = false;
   
-  var $gameboard = $("canvas#gameBoard");
+  var $gameboard = $("canvas#background");
+  if (!$gameboard || $gameboard.length == 0) {
+    $gameboard = createGameBoard(gridType, rows, columns);
+  }
+  
   var context = $gameboard[0].getContext("2d");
   context.beginPath();
   //going to assume we want a 19 x 19 grid
@@ -164,13 +214,20 @@ function initDragDrop() {
     }
     
     var position = findMousePosition(e);
-    createNewImage(newImg, position.gridX, position.gridY);   
+    createNewImage(newImg, position.gridX, position.gridY, true);   
     
     return false;
   });
   
   $textArea.mousemove(function(e) {
+    e.stopPropagation();
     console.log("got mousemove on textarea");
+    
+    if (_draggingImage && _draggingImage != null) {
+      console.log("dragging an image...");
+      onDragMove(findMousePosition(e));
+    }
+    return false;
   });
   
   //watch for mouse down on textarea, pass onto canvas
@@ -179,8 +236,8 @@ function initDragDrop() {
     
     //find image, if it exists
     var position = findMousePosition(e);
-    var fixedX = position.gridX - 50;
-    var fixedY = position.gridY - 50;
+    var fixedX = position.gridX;
+    var fixedY = position.gridY;
     
     var key = fixedX + "_" + fixedY; //this may break
     //this doesn't work so well, conceptually, with Go pieces ON the grid 
@@ -238,8 +295,7 @@ function initDragDrop() {
     _draggingImage = null;
     
     //send this message to the server, and other clients
-    //TODO: replace this with a call to sendMessage from socket.js
-    send("_move_x:" + atPosition.gridX + ",y:" + atPosition.gridY, false);
+    sendMessage("move", {x: atPosition.gridX, y: atPosition.gridY, room: _roomId, who: _username}, false);
     
     //wipe the context of the top canvas and redraw
     renderAll(true);

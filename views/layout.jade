@@ -5,5 +5,12 @@ html(lang="en")
 		link(rel="stylesheet", href="/public/css/style.css")
 		script(src="/public/js/head-min.js", type="text/javascript")
   body
+		.leftBlock
+			h1 GO Board v0.0.1
+			a(href="/logout") Logout
+		.rightBlock(id="trHeader")
+			span designed by 
+			a(href="http://www.illegaltoaster.com") Tim Jarratt
+		.clear
 		#topContainer!= body
-		input(class="xss", value=xid)
+		input(class="hidden", value=xid)
