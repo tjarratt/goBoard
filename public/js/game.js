@@ -29,7 +29,7 @@ function initGame(roomId, color, known) {
   _url = "butter3.local";//TODO: get this from hostname()
   //should probably be http://www.table.no.de at some point
   
-  _socket = new io.Socket(_url, {port: 8080});
+  _socket = new io.Socket(_url, {port: 8000});
   initSocket(_socket);
   
   if (!known) {
