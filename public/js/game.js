@@ -26,7 +26,7 @@ function initGame(roomId, color, known) {
   _color = color;
   known = known && known != "false" ? true : false;
   io.setPath("/");
-  _url = "butter3.local";//TODO: get this from hostname()
+  _url = "table.no.de";//TODO: get this from hostname()
   //should probably be http://www.table.no.de at some point
   
   _socket = new io.Socket(_url, {port: 80});

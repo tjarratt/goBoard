@@ -4,7 +4,7 @@ var express = require("express"),
       express.staticProvider(__dirname)
     ),
     sys = require("sys"),
-    redisClient = require("lib/redis-client").createClient(),
+    redisClient = require("./lib/redis-client").createClient(),
     cookie = require("cookie");
     
 cookie.secret = "thisIsABadSecret!"; //TODO: set this in a .gitignore file when deploying
