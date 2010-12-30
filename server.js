@@ -39,8 +39,8 @@ _.each(controllers, function(ctl, index, context) {
     
 app.set("views", __dirname + "/views");
 app.set("view engine", "jade");
-app.listen(8000);
-console.log("express server started on port 8000");
+app.listen(80);
+console.log("express server started on port 80");
 
 app.get("/", function(req, res) {
   var renderCallback = function(localVars) {

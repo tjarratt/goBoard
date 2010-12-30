@@ -144,7 +144,7 @@ handler.disconnect = function(client, roomId) {
 //setup socket.io server on top of express _app
 var buffer = [], jStringify = JSON.stringify, jParse = JSON.parse;
 var startSocket = function() {
-  console.log("starting socket.io server on port 8000?");
+  console.log("starting socket.io server on port 80?");
   
   var socket = io.listen(_app);
   socket.on("connection", function(client) {
