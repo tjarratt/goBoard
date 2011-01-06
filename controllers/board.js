@@ -179,6 +179,7 @@ expressApp.get("/board/:roomId", function(req, res) {
                           room: thisRoom, 
                           known: isKnown,
                           hostname: _hostname,
+                          port: _port,
                 }};
     
     res.render("board", locals);

@@ -14,11 +14,8 @@ function joinEventCallback(result) {
   $("div#messages").html("");
   
   initDragDrop();
-  /*$("div#gameContainer").show();
-	$("div#gameContainer").children().show();*/
 	$("div#gameContainer").css("visibility", "visible");
 	$("div#gameContainer").children().css("visibility", "visible");
-	//$("canvas").css("visibility", "visible");
 }
 
 function initGame(roomId, color, known) {
@@ -26,9 +23,8 @@ function initGame(roomId, color, known) {
   _color = color;
   known = known && known != "false" ? true : false;
   io.setPath("/");
-  //_url = "table.no.de";//TODO: get this from hostname()
   
-  _socket = new io.Socket(_url, {port: 80});
+  _socket = new io.Socket(_url, {port: _port});
   initSocket(_socket);
   
   if (!color in  ["black", "white"]) {

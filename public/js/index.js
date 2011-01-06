@@ -18,7 +18,7 @@ function initIndex() {
   //_url = "table.no.de";//TODO: get this from hostname()
   //should probably be http://www.table.no.de at some point
   
-  _socket = new io.Socket(_url, {port: 80});
+  _socket = new io.Socket(_url, {port: _port});
   initSocket(_socket);
     
   var selectEle = document.createElement("select");

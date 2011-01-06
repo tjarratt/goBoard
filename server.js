@@ -58,7 +58,7 @@ _app = app; //TODO: find out why it isn't just sufficient for controllers to sim
 _appRoot = __dirname;
 _config = isDebug? config.debug() : config.prod();
 _port = parseInt(_config.port);
-_hostname = _config.hostname;
+_hostname = _config.url;
 _emptyCallback = function() {return;};    //NB: redisClient doesn't like bool `false` callbacks
 
 //clean up any old data
@@ -87,10 +87,12 @@ app.set("views", __dirname + "/views");
 app.set("view engine", "jade");
 app.listen(_port);
 console.log("express server started on port " + _port.toString());
+console.log("with hostname " + _hostname);
 
 app.get("/", function(req, res) {
   var renderCallback = function(localVars) {
     localVars.hostname = _hostname;
+    localVars.port = _port;
     res.render("index.jade", {locals: localVars});
   }
   
