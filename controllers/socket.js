@@ -1,5 +1,5 @@
 var sys = require("sys"),
-    redisClient = require(_appRoot + "/lib/redis-client").createClient(),
+    redisClient = require("redis").createClient(),
     io = require("socket.io");//installed from npm, should be in __appRoot/vendor
     
 require(_appRoot + "/lib/underscore-min");

@@ -6,7 +6,7 @@ try {
     ),
     config = require("./config/config"),
     sys = require("sys"),
-    redisClient = require("./lib/redis-client").createClient(),
+    redisClient = require("redis").createClient(),
     cookie = require("cookie");
     
   cookie.secret = "thisIsABadSecret!"; //TODO: set this in a .gitignore file when deploying

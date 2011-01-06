@@ -1,7 +1,7 @@
 var expressApp = _app,
     express = require("express"),
     sys = require("sys"),
-    redisClient = require(_appRoot + "/lib/redis-client").createClient(),
+    redisClient = require("redis").createClient(),
     assert = require("assert"),
     jStringify = JSON.stringify, 
     jParse = JSON.parse;
@@ -186,7 +186,11 @@ expressApp.get("/board/:roomId", function(req, res) {
   if (cookieValue) {
     sys.puts("got cookied user joining game: " + roomId);
     //check what color, name this user has
-    redisClient.hget("cookie:" + cookieValue, "name", function(name) {
+    redisClient.hgetall("cookie:" + cookieValue, function(e, result) {
+      var name = hashResultMaybe(result, "name");
+      sys.puts("hgetall cookie:" + cookieValue);
+      sys.puts(result);
+      sys.puts(sys.inspect(result));
       sys.puts("cookied user: " + cookieValue + " aka " + name + " is joining game " + roomId);
       
       redisClient.hgetall("room:" + roomId, function(e, roomInfo) {
@@ -203,20 +207,31 @@ expressApp.get("/board/:roomId", function(req, res) {
           return joinAsPlayer(cookieValue, false, "This game doesn't appear to exist", false, true, false);
         }
         
-        var userColor = userInfo && userInfo.color? userInfo.color : availableColor,
-            otherUser = _.without(_.keys(usersObj), name)[0]; //too much? seems safe
-            welcomeBack = "Welcome to your game against " + otherUser + ", mr. " + userColor,
-            known = false; //assumption, checked below
-            
-        if (name && name != "unknown") {
-          usersObj[name] = {color: userColor};
-          known = true;
+        //check if this user has already joined and is returning, or if they are just joining for the first time
+        if (name in usersObj) {
+          sys.puts("a user from this game is joining again, joy!");
+          var thisUser = usersObj[name];
+          //TODO: do we need to check if this user has picked a color yet? probably
+          return joinAsPlayer(cookieValue, thisUser.color, "Welcome back to your game", true, false, roomId);
         }
+        else {
+          sys.puts( name + " is not in keys " + _.keys(usersObj));
+          //user is joining for the first time, so spectator or second player
+          var userColor = userInfo && userInfo.color? userInfo.color : availableColor,
+              otherUser = _.without(_.keys(usersObj), name)[0]; //too much? seems safe
+              welcomeBack = "Welcome to your game against " + otherUser + ", " + name;
+              known = false; //assumption, checked below
             
-        sys.puts("updating users for room: " + roomId, " with obj: " + jStringify(usersObj));
-        redisClient.hset("room:" + roomId, "users", jStringify(usersObj), function(e, result) {
-          joinAsPlayer(cookieValue, availableColor, welcomeBack, known, availableColor == "spectate", roomId);
-        });
+          if (name && name != "unknown") {
+            usersObj[name] = {color: userColor};
+            known = true;
+          }
+            
+          sys.puts("updating users for room: " + roomId, " with obj: " + jStringify(usersObj));
+          redisClient.hset("room:" + roomId, "users", jStringify(usersObj), function(e, result) {
+            joinAsPlayer(cookieValue, availableColor, welcomeBack, known, availableColor == "spectate", roomId);
+          });
+        }
       });
     });
   }

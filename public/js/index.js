@@ -3,8 +3,13 @@ _init = {
         board: false,
         }
 
+_stateObj = { foo: "bar"};
 _xid = $("input.xss").val();
 console.log("got temp id: " + _xid);
+
+function pushURLToGameId(gameId) {
+  history.pushState(_stateObj, "Your Game", "board/" + gameId);
+}
 
 function initIndex() {
   //TODO: check to see if we had an existing game in a cookie, join it
@@ -27,6 +32,9 @@ function initIndex() {
     var startSuccess = function(transport) {
       console.log("success when choosing color: " + _color);
       console.log(transport);
+      //fake redirect to /board/:gameId
+      pushURLToGameId(_roomId);
+      
       $("div#gamePieces").html("<img class='myGamePiece' src='/public/image/" + _color + ".png' />");
       
       //let's put a link for other people to join on the page though.

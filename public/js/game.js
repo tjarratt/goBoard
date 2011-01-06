@@ -32,6 +32,14 @@ function initGame(roomId, color, known) {
   _socket = new io.Socket(_url, {port: 80});
   initSocket(_socket);
   
+  if (!color in  ["black", "white"]) {
+    console.log("joined with an unknown color: " + color);
+  }
+  else {
+    var myGamePiece = "<img src='/public/image/" + color + ".png' />"
+    $("div#gamePieces").append(myGamePiece);
+  }
+  
   if (!known) {
     var $temp = $("div#temp");
     
@@ -52,6 +60,8 @@ function initGame(roomId, color, known) {
   }
   else {
     initGameBoard("square", 19, 19);
+    $("canvas").css("visibility", "visible");
+    $("div#gamePieces").css('visibility', "visible");
   }
   $("input#nameInput").focus();
 }
