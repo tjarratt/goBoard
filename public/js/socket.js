@@ -43,6 +43,7 @@ SocketHandler.prototype.handle = function(dataMessage) {
   }
   catch (e) {
     console.log("got unparseable message via socket.io: ");
+    console.log(e);
     console.log(dataMessage);
   }
 }

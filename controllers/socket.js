@@ -26,6 +26,7 @@ handler.move = function(client, json) { //should we use an ID per piece? seems r
       roomId = moveInfo.room,
       moveX = moveInfo.x,
       moveY = moveInfo.y,
+      moveKey = moveX + "_" + moveY,
       whichUser = moveInfo.who;
       
   //for now assume this is all valid
@@ -35,7 +36,10 @@ handler.move = function(client, json) { //should we use an ID per piece? seems r
     usersList = usersList instanceof Array ? usersList : [];
     usersList = _.without(usersList, client.sessionId);
     
-    client.broadcastOnly(jStringify({type: "move", who: whichUser, x: moveX, y: moveY}), usersList);
+    sys.puts("in move handler. sending this object...");
+    var jsonResponse = jStringify({type: "move", who: whichUser, key: moveKey, to: {x: moveX, y: moveY} } );
+    
+    client.broadcastOnly( jsonResponse, usersList);
     client.send(jStringify({id: json.id, result: true})); //TODO: make sure this only targets one client
   });
 }
@@ -118,6 +122,7 @@ handler.join = function(client, json) { //that no one will play more than one ga
         if (! isValidReturn(e, result)) {
          sys.puts("error when updating web sockets for room:" + roomId);
         }
+        sys.puts("successfully joined, now to send a callback result to the client that joined.");
         client.send(jStringify({id: json.id, result: true}));
       });
     });
@@ -148,16 +153,18 @@ var startSocket = function() {
   
   var socket = io.listen(_app);
   socket.on("connection", function(client) {
+    sys.puts("client connected to socket.io server");
     
     var errorJSON = {error: "bad json"};
     client.on("message", function(messageData) {
+      sys.puts("got a message");
       //parse message, handle it
       try 
       {
         msg = jParse(messageData); //parse, look for invalid message type
         if (!msg || !msg.type || !msg.data || !handler[msg.type]) {
           sys.puts("parsed a message with no type, no data, or no handler for this type");
-          return this.send(jStringify(errorJSON));
+          return client.send(jStringify(errorJSON));
         }
         else {
           sys.puts("handling a " + msg.type + " websocket message");
@@ -167,7 +174,7 @@ var startSocket = function() {
       }
       catch (exception) {
         sys.puts("caught an error when parsing a message: " + messageData);
-        return this.send(jStringify(error));
+        return client.send(jStringify(error));
       } //if this doesn't work try client.broadcastOnly(jStringify(error), [client.sessionId]);
     });
     
@@ -183,7 +190,7 @@ var tryStart = function() {
     sys.log("express not started yet, waiting for nextTick to start socket server.");
     
     //would probably be more effective to just listen for an event
-    return process.nextTick(tryStart);
+    return setTimeout(tryStart, 3000);
   }
   else { startSocket(); }
 }

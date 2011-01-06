@@ -25,5 +25,6 @@
 		|					"/public/js/jquery.cookie.js",
 		|					"/lib/uuid.js",
 		| function() {
+		|		_url = "#{hostname}";
 		| 	initGame($("input#gameId").val(), $("input#forcedColor").val(), $("input#known").val());
 		| });

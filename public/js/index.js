@@ -15,7 +15,7 @@ function initIndex() {
   //TODO: check to see if we had an existing game in a cookie, join it
   //setup socket.io
   io.setPath("/");
-  _url = "table.no.de";//TODO: get this from hostname()
+  //_url = "table.no.de";//TODO: get this from hostname()
   //should probably be http://www.table.no.de at some point
   
   _socket = new io.Socket(_url, {port: 80});

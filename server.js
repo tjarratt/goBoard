@@ -90,6 +90,7 @@ console.log("express server started on port " + _port.toString());
 
 app.get("/", function(req, res) {
   var renderCallback = function(localVars) {
+    localVars.hostname = _hostname;
     res.render("index.jade", {locals: localVars});
   }
   

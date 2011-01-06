@@ -172,8 +172,16 @@ expressApp.get("/board/:roomId", function(req, res) {
   var roomId = req.params.roomId;
   var joinAsPlayer = function(xidValue, colorChoice, joinMessage, isKnown, isSpectate, thisRoom) {
     isKnown = isKnown? "true" : "false";
+    var locals = {locals: {xid: xidValue, 
+                          message: joinMessage, 
+                          spectate: isSpectate, 
+                          color: colorChoice, 
+                          room: thisRoom, 
+                          known: isKnown,
+                          hostname: _hostname,
+                }};
     
-    res.render("board", {locals: {xid: xidValue, message: joinMessage, spectate: isSpectate, color: colorChoice, room: thisRoom, known: isKnown}});
+    res.render("board", locals);
     
     if (!isSpectate) {
       redisClient.hset("room:" + roomId, "availableColor", "spectate", function(e, result) {
@@ -242,7 +250,7 @@ expressApp.get("/board/:roomId", function(req, res) {
       sys.puts("joining room, got results: " + results);
       var availableColor = hashResultMaybe(results, 0);
       var usersList = hashResultMaybe(results, 1);
-      usersList = jParse(usersList);
+      usersList = usersList? jParse(usersList) : {};
     
       var otherUser = _.keys(usersList)[0];
       assert.equal(1, _.keys(usersList).length);

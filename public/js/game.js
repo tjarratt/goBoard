@@ -26,8 +26,7 @@ function initGame(roomId, color, known) {
   _color = color;
   known = known && known != "false" ? true : false;
   io.setPath("/");
-  _url = "table.no.de";//TODO: get this from hostname()
-  //should probably be http://www.table.no.de at some point
+  //_url = "table.no.de";//TODO: get this from hostname()
   
   _socket = new io.Socket(_url, {port: 80});
   initSocket(_socket);
@@ -36,8 +35,8 @@ function initGame(roomId, color, known) {
     console.log("joined with an unknown color: " + color);
   }
   else {
-    var myGamePiece = "<img src='/public/image/" + color + ".png' />"
-    $("div#gamePieces").append(myGamePiece);
+    //var myGamePiece = "<img src='/public/image/" + color + ".png' />"
+    //$("div#gamePieces").append(myGamePiece);
   }
   
   if (!known) {
