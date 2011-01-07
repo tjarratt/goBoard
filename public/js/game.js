@@ -1,4 +1,4 @@
-function joinEventCallback(result) {
+function joinEventCallback(result, data) {
   if (!result) {return alert("uh oh");}
   
   console.log("successfully joined");
@@ -16,6 +16,13 @@ function joinEventCallback(result) {
   initDragDrop();
 	$("div#gameContainer").css("visibility", "visible");
 	$("div#gameContainer").children().css("visibility", "visible");
+	
+	//take history out of result, try to replay history
+	var gameHistory = data.history;
+  console.log("in history with " + gameHistory.length + " moves.");
+	$.each(gameHistory, function(index, gameMove) {
+	  _socketHandler.handle(gameMove);
+	});
 }
 
 function initGame(roomId, color, known) {

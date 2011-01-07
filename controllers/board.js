@@ -181,14 +181,20 @@ expressApp.get("/board/:roomId", function(req, res) {
                           hostname: _hostname,
                           port: _port,
                 }};
-    
-    res.render("board", locals);
+                
+    //get history for the room, then emit response
+    redisClient.lrange("moves:" + thisRoom, 0, 500000, function(e, moveHistory) {
+      moveHistory = moveHistory && moveHistory.length > 0 ? moveHistory: "{}";
+      sys.puts("got history for this room: " + moveHistory);
+      locals.history = jParse(moveHistory);
+      res.render("board", locals);
+    });
     
     if (!isSpectate) {
       redisClient.hset("room:" + roomId, "availableColor", "spectate", function(e, result) {
         if (e) { sys.puts("FATAL: could not set availableColor as spectate after a player joined"); }
       }); //is it too early to set this here? technically we've only rendered the client, we might want to do this as part of the {join} message
-    }
+    }     //i mean, actually, this is sort of a domain-ish issue. do all games follow this idea? might some have no idea of a spectator
   }
   
   var cookieValue = req.getCookie("uuid");

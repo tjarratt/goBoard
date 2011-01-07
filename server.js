@@ -68,11 +68,20 @@ if (isDebug) {
     oldGames = oldGames && oldGames.length? oldGames : [];
     _.each(oldGames, function(oldKey, index, context) {
       redisClient.del(oldKey, function(e, result) {
-        if (e || !result) {sys.puts("couldn't delete this key: " + oldKey)}
+        if (e || !result) { sys.puts("couldn't delete this key: " + oldKey); }
       });
     });
   });
   redisClient.set("games", 0, _emptyCallback);
+  //clean up old moves
+  redisClient.keys("moves:*", function(e, staleMoves) {
+    staleMoves = staleMoves && staleMoves.length > 0 ? staleMoves : [];
+    _.each(staleMoves, function(oldMove, index, context) {
+      redisClient.del(oldMove, function(e, result) {
+        if (e || !result) { sys.puts("couldn't delete a stale move key : " + oldMove); }
+      })
+    });
+  });
 }    
 //in case we aren't in the latest node
 console = console? console : {log: function(message) { sys.puts(message); } };

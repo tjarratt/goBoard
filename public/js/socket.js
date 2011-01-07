@@ -9,7 +9,7 @@ function SocketHandler() {
 
 SocketHandler.prototype.handle = function(dataMessage) {
   try {
-    var dataObj = JSON.parse(dataMessage);
+    var dataObj = typeof dataMessage == "object" ? dataMessage : JSON.parse(dataMessage);
   
     //look for a corresponding message in this.messages
     if (dataObj.id && dataObj.result) {
@@ -23,7 +23,7 @@ SocketHandler.prototype.handle = function(dataMessage) {
       
       //got some code that needs executing
       if (callback && typeof callback == "function") {
-        callback(result);  //off with their head
+        callback(result, dataObj);  //off with their head
       }
     }
     else if (dataObj && dataObj.type) {
@@ -116,7 +116,7 @@ function initSocket(socketObj) {
   _socketHandler.socket = socketObj;
   
   _socketHandler.socket.on("message", function(data){
-    var obj = JSON.parse(data);
+    //var obj = JSON.parse(data);
     console.log("got message : " + data);
     
     _socketHandler.handle(data);

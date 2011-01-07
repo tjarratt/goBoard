@@ -38,9 +38,14 @@ handler.move = function(client, json) { //should we use an ID per piece? seems r
     
     sys.puts("in move handler. sending this object...");
     var jsonResponse = jStringify({type: "move", who: whichUser, key: moveKey, to: {x: moveX, y: moveY} } );
-    
-    client.broadcastOnly( jsonResponse, usersList);
-    client.send(jStringify({id: json.id, result: true})); //TODO: make sure this only targets one client
+    redisClient.rpush("moves:" + roomId, jsonResponse, function(e, result) {
+      if (e || (!result && result != 0)) {
+        return client.send(jStringify({id: json.id, result: true}));
+      }
+      
+      client.broadcastOnly(jsonResponse, usersList);
+      client.send(jStringify({id: json.id, result: true})); //TODO: make sure this only targets one client
+    });
   });
 }
 //{type:"add", data: {room: %integer%, x: %int%, y: %int%}}
@@ -55,12 +60,19 @@ handler.add = function(client, json) {
       src = moveInfo.src;
   
   redisClient.hget("room:" + roomId, "sockets", function(e, result) {
-    var usersList = jParse(result);
+    var usersList = jParse(result),
+        addObj = {type: "add", who: whichUser, x: atX, y: atY, image: src},
+        addStr = jStringify(addObj);
     usersList = usersList instanceof Array ? usersList : [];
     usersList = _.without(usersList, client.sessionId);
     
-    client.broadcastOnly(jStringify({type: "add", who: whichUser, x: atX, y: atY, image: src}), usersList);
-    client.send(jStringify({id: json.id, result: true})); //TODO: make sure this only targets one client
+    redisClient.rpush("moves:" + roomId, addStr, function(e, result) {
+      if (e || !result) {
+        return client.send(jStringify({id: json.id, result: false}));
+      }
+      client.broadcastOnly(addStr, usersList);
+      client.send(jStringify({id: json.id, result: true})); //this only targets the client that sent this message
+    });
   });
   
 }
@@ -91,23 +103,22 @@ handler.join = function(client, json) { //that no one will play more than one ga
   redisClient.hset("socket", socketId, username, function(e, result) {
     if (e || !result) {
       sys.puts("error when writing to socket hash for user: " + username);
-      return client.broadcastOnly("err", [client.sessionId]);
+      return client.send("err", [client.sessionId]);
     }
     
     redisClient.hmget("room:" + roomId, "sockets", "users", function(e, roomInfo) {
-      sys.puts("info for room:" + roomId, "     " + roomInfo);
-      
       var sockets = hashResultMaybe(roomInfo, 0),
           users = hashResultMaybe(roomInfo, 1);
           
+      sys.puts("info for room:" + roomId, "     " + roomInfo);
       sys.puts("got users for room:" + roomId, users);
 
       users = jParse(users)
       sockets = jParse(sockets);
       var otherUsers = users? users: {},
-          allSockets = sockets && sockets instanceof Array ? sockets : [];
-      
-      var joinMessage = {type: "join", "who": username};
+          allSockets = sockets && sockets instanceof Array ? sockets : [],
+          joinMessage = {type: "join", "who": username};
+          
       sys.puts("sending join message: " + jStringify(joinMessage) + " to users : " + jStringify(allSockets));
       client.broadcastOnly(jStringify(joinMessage), allSockets);
       
@@ -123,7 +134,17 @@ handler.join = function(client, json) { //that no one will play more than one ga
          sys.puts("error when updating web sockets for room:" + roomId);
         }
         sys.puts("successfully joined, now to send a callback result to the client that joined.");
-        client.send(jStringify({id: json.id, result: true}));
+        
+        redisClient.lrange("moves:" + roomId, 0, 500000, function(e, historyMoves) {
+          sys.puts("got moves for this existing game: " + historyMoves);
+          historyMoves = historyMoves && historyMoves.length > 0 ? historyMoves : "{}";
+          //TODO: need to get the buffer for this room and send something back
+          var responseObj = {id: json.id, result: true},
+              historyObj = jParse(historyMoves);
+          responseObj.history = [historyObj];
+
+          client.send(jStringify(responseObj));
+        });
       });
     });
   });
